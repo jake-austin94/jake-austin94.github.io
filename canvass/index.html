@@ -76,6 +76,16 @@
   .btn.danger { background:var(--err); }
   .btn.gap { margin-top:10px; }
   select { width:100%; font-size:17px; padding:13px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font-family:inherit; }
+
+  .area { background:#fff; border-radius:14px; padding:14px 14px 14px 64px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); position:relative; }
+  .area .num { position:absolute; left:14px; top:14px; width:38px; height:38px; border-radius:50%; background:var(--blue); color:#fff; font-weight:800; font-size:19px; display:flex; align-items:center; justify-content:center; }
+  .area.first .num { background:var(--ok); }
+  .area.first { border:2px solid var(--ok); }
+  .area h3 { margin:0 0 4px; font-size:17px; }
+  .area p { margin:4px 0 0; font-size:14.5px; line-height:1.4; }
+  .area .lbl { font-weight:700; }
+  .area .avoid { color:var(--err); }
+  .home-intro { margin:0 0 14px; font-size:15px; color:var(--muted); }
   .hidden { display:none !important; }
 </style>
 </head>
@@ -98,10 +108,16 @@
   <!-- Form -->
   <div id="formScreen" class="hidden">
     <div class="tabs" style="margin:-16px -16px 16px;">
-      <button type="button" class="tab active" id="tabBtnLog">Log a house</button>
+      <button type="button" class="tab active" id="tabBtnHome">Where to go</button>
+      <button type="button" class="tab" id="tabBtnLog">Log a house</button>
       <button type="button" class="tab" id="tabBtnShift">Shift tracker</button>
     </div>
-    <div id="tabLog">
+    <div id="tabHome">
+      <p class="home-intro">Work these in order. Start at number 1.</p>
+      <div id="areaList"></div>
+      <p class="hint" id="areaMsg"></p>
+    </div>
+    <div id="tabLog" class="hidden">
     <div id="msg" class="msg"></div>
 
     <form id="leadForm" class="card" autocomplete="off" novalidate>
@@ -414,12 +430,41 @@
 
   // Tabs
   function showTab(which) {
+    $('tabHome').classList.toggle('hidden', which !== 'home');
     $('tabLog').classList.toggle('hidden', which !== 'log');
     $('tabShift').classList.toggle('hidden', which !== 'shift');
+    $('tabBtnHome').classList.toggle('active', which === 'home');
     $('tabBtnLog').classList.toggle('active', which === 'log');
     $('tabBtnShift').classList.toggle('active', which === 'shift');
     store('canvassTab', which);
+    if (which === 'home') loadAreas();
   }
+  var areasLoaded = false;
+  function esc(t) { var d = document.createElement('div'); d.textContent = t == null ? '' : String(t); return d.innerHTML; }
+  function loadAreas() {
+    var pin = load('canvassPin');
+    if (!pin || areasLoaded) return;
+    $('areaMsg').textContent = 'Loading...';
+    fetch('https://hsusrpcutidavgmagkch.supabase.co/functions/v1/canvass-targets', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: pin })
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, body: j }; }); })
+    .then(function (res) {
+      if (res.status === 401) { drop('canvassPin'); location.reload(); return; }
+      if (!res.body || !res.body.areas) { $('areaMsg').textContent = 'Could not load the list. Check your signal and tap Where to go again.'; return; }
+      var html = '';
+      res.body.areas.forEach(function (a, i) {
+        html += '<div class="area' + (i === 0 ? ' first' : '') + '"><div class="num">' + esc(a.priority) + '</div><h3>' + esc(a.area) + '</h3>' +
+          '<p>' + esc(a.streets) + '</p>' +
+          (a.why ? '<p><span class="lbl">Why: </span>' + esc(a.why) + '</p>' : '') +
+          (a.avoid ? '<p class="avoid"><span class="lbl">Careful: </span>' + esc(a.avoid) + '</p>' : '') + '</div>';
+      });
+      $('areaList').innerHTML = html;
+      $('areaMsg').textContent = '';
+      areasLoaded = true;
+    }).catch(function () { $('areaMsg').textContent = 'No signal. Tap Where to go again once you have signal.'; });
+  }
+  $('tabBtnHome').addEventListener('click', function () { showTab('home'); });
+  $('pinBtn').addEventListener('click', function () { setTimeout(function () { if (!$('tabHome').classList.contains('hidden')) loadAreas(); }, 50); });
   $('tabBtnLog').addEventListener('click', function () { showTab('log'); });
   $('tabBtnShift').addEventListener('click', function () { showTab('shift'); });
 
@@ -547,7 +592,7 @@
 
   // Initial state
   show(st ? 'run' : 'start');
-  showTab(load('canvassTab') === 'shift' || st ? 'shift' : 'log');
+  showTab(st ? 'shift' : (load('canvassTab') === 'log' || load('canvassTab') === 'shift' ? load('canvassTab') : 'home'));
 })();
 </script>
 </body>
