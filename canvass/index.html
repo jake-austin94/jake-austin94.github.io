@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Canvass">
+<title>Canvass Log - Roof &amp; Render</title>
+<style>
+  :root { --navy:#12355b; --blue:#1e6fb8; --bg:#f3f6f9; --card:#fff; --ink:#18232f; --muted:#64748b; --line:#d5dde6; --ok:#17803d; --err:#b42318; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); padding-bottom:env(safe-area-inset-bottom); }
+  header { background:var(--navy); color:#fff; padding:calc(14px + env(safe-area-inset-top)) 18px 14px; }
+  header h1 { margin:0; font-size:19px; }
+  header p { margin:2px 0 0; font-size:13px; opacity:.8; }
+  main { max-width:560px; margin:0 auto; padding:16px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+  label { display:block; font-weight:600; font-size:14px; margin:14px 0 6px; }
+  label:first-child { margin-top:0; }
+  label small { font-weight:400; color:var(--muted); }
+  input[type=text], input[type=tel], input[type=email], input[type=password], input[type=number], textarea { width:100%; font-size:17px; padding:13px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font-family:inherit; }
+  textarea { min-height:100px; resize:vertical; }
+  input:focus, textarea:focus { outline:none; border-color:var(--blue); }
+  .row { display:flex; gap:10px; }
+  .row > div { flex:1; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .chip { border:1.5px solid var(--line); background:#fff; color:var(--ink); border-radius:999px; padding:8px 12px; font-size:14px; }
+  .chip:active { background:#e6f0fa; }
+  button { font-family:inherit; }
+  .btn { width:100%; border:0; border-radius:12px; padding:16px; font-size:17px; font-weight:700; background:var(--blue); color:#fff; }
+  .btn.secondary { background:#fff; color:var(--blue); border:1.5px solid var(--blue); }
+  .btn:disabled { opacity:.55; }
+  .photo-actions { display:flex; gap:10px; }
+  .photo-actions .btn { padding:13px; font-size:15px; }
+  .thumbs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .thumb { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; background:#ddd; }
+  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb button { position:absolute; top:4px; right:4px; width:28px; height:28px; border-radius:50%; border:0; background:rgba(0,0,0,.65); color:#fff; font-size:16px; line-height:1; }
+  .msg { padding:12px 14px; border-radius:10px; font-size:15px; margin-bottom:14px; display:none; }
+  .msg.ok { display:block; background:#e7f6ec; color:var(--ok); }
+  .msg.err { display:block; background:#fdecea; color:var(--err); }
+  .hint { color:var(--muted); font-size:13px; margin-top:6px; }
+  .count { text-align:center; color:var(--muted); font-size:13px; margin:4px 0 20px; }
+
+  .tabs { display:flex; background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+  .tab { flex:1; padding:14px 8px; font-size:16px; font-weight:700; background:#fff; border:0; border-bottom:3px solid transparent; color:var(--muted); }
+  .tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+  .timer { font-size:44px; font-weight:800; text-align:center; letter-spacing:1px; font-variant-numeric:tabular-nums; margin:4px 0 2px; }
+  .timer-sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:14px; }
+  .counters { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .counter { border:1.5px solid var(--line); border-radius:12px; padding:10px; text-align:center; background:#fff; }
+  .counter .lbl { font-size:13px; font-weight:600; color:var(--muted); min-height:32px; display:flex; align-items:center; justify-content:center; }
+  .counter .val { font-size:34px; font-weight:800; line-height:1.1; margin:2px 0 8px; font-variant-numeric:tabular-nums; }
+  .counter .btns { display:flex; gap:8px; }
+  .counter .btns button { flex:1; border:0; border-radius:10px; font-size:26px; font-weight:700; padding:10px 0; }
+  .counter .plus { background:var(--blue); color:#fff; flex:2 !important; }
+  .counter .minus { background:#e8eef5; color:var(--ink); }
+  .counter.wide { grid-column:1 / -1; }
+  .btn.danger { background:var(--err); }
+  .btn.gap { margin-top:10px; }
+  select { width:100%; font-size:17px; padding:13px 12px; border:1.5px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font-family:inherit; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Canvass Log</h1>
+  <p>The Roof &amp; Render Cleaning Company</p>
+</header>
+
+<main>
+  <!-- PIN screen -->
+  <section id="pinScreen" class="card">
+    <label for="pin">Enter your PIN</label>
+    <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="PIN">
+    <p class="hint">You only need to do this once on this phone.</p>
+    <div style="height:12px"></div>
+    <button class="btn" id="pinBtn" type="button">Continue</button>
+  </section>
+
+  <!-- Form -->
+  <div id="formScreen" class="hidden">
+    <div class="tabs" style="margin:-16px -16px 16px;">
+      <button type="button" class="tab active" id="tabBtnLog">Log a house</button>
+      <button type="button" class="tab" id="tabBtnShift">Shift tracker</button>
+    </div>
+    <div id="tabLog">
+    <div id="msg" class="msg"></div>
+
+    <form id="leadForm" class="card" autocomplete="off" novalidate>
+      <label for="name">Customer name *</label>
+      <input id="name" type="text" autocapitalize="words" placeholder="e.g. Mrs Jones">
+
+      <label for="phone">Mobile number <small>(for WhatsApp)</small></label>
+      <input id="phone" type="tel" inputmode="tel" placeholder="07...">
+
+      <label for="email">Email</label>
+      <input id="email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" placeholder="name@example.com">
+      <p class="hint">We need at least one: a mobile number or an email, so Jake can send the quote.</p>
+
+      <label for="address">Address *</label>
+      <input id="address" type="text" autocapitalize="words" placeholder="House number and street">
+
+      <div class="row">
+        <div>
+          <label for="town">Town</label>
+          <input id="town" type="text" list="towns" autocapitalize="words" placeholder="Town">
+          <datalist id="towns">
+            <option value="Newmarket"><option value="Cambridge"><option value="Bury St Edmunds"><option value="Haverhill"><option value="Ely">
+          </datalist>
+        </div>
+        <div>
+          <label for="postcode">Postcode</label>
+          <input id="postcode" type="text" autocapitalize="characters" placeholder="CB8 ...">
+        </div>
+      </div>
+
+      <label for="notes">Access &amp; notes <small>(how easy is it to get to the roof?)</small></label>
+      <textarea id="notes" placeholder="Side gate, dog, driveway space, ladder access, anything Jake needs to quote..."></textarea>
+      <div class="chips" id="chips">
+        <button type="button" class="chip">Side gate access</button>
+        <button type="button" class="chip">Dog on site</button>
+        <button type="button" class="chip">Long driveway</button>
+        <button type="button" class="chip">Tight access</button>
+        <button type="button" class="chip">Ladder access OK</button>
+        <button type="button" class="chip">Tower access all sides: YES</button>
+        <button type="button" class="chip">Tower access all sides: NO</button>
+        <button type="button" class="chip">Requires cherry picker</button>
+        <button type="button" class="chip">3+ storeys</button>
+        <button type="button" class="chip">Conservatory</button>
+      </div>
+
+      <label>Photos of the roof <small>(front, any moss, any problem areas)</small></label>
+      <div class="photo-actions">
+        <button type="button" class="btn secondary" id="takeBtn">Take photo</button>
+        <button type="button" class="btn secondary" id="pickBtn">From gallery</button>
+      </div>
+      <input id="camInput" class="hidden" type="file" accept="image/*" capture="environment">
+      <input id="galInput" class="hidden" type="file" accept="image/*" multiple>
+      <div class="thumbs" id="thumbs"></div>
+
+      <div style="height:20px"></div>
+      <button class="btn" id="submitBtn" type="submit">Save &amp; send to Jake</button>
+    </form>
+
+    <p class="count" id="count"></p>
+    </div>
+
+    <div id="tabShift" class="hidden">
+      <div id="shiftMsg" class="msg"></div>
+
+      <!-- Start -->
+      <section id="shiftStart" class="card">
+        <label for="shArea">Where are you working today?</label>
+        <input id="shArea" type="text" list="towns" autocapitalize="words" placeholder="Town / roads">
+        <div class="row">
+          <div>
+            <label for="shCardsStart">Cards in hand</label>
+            <input id="shCardsStart" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+          <div>
+            <label for="shLeafStart">Leaflets in hand</label>
+            <input id="shLeafStart" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+        </div>
+        <div style="height:18px"></div>
+        <button type="button" class="btn" id="shStartBtn">Start shift</button>
+      </section>
+
+      <!-- Running -->
+      <section id="shiftRun" class="card hidden">
+        <div class="timer" id="shTimer">00:00:00</div>
+        <div class="timer-sub" id="shTimerSub"></div>
+        <div class="counters" id="shCounters"></div>
+        <button type="button" class="btn secondary gap" id="shPauseBtn">Pause (break)</button>
+        <button type="button" class="btn danger gap" id="shEndBtn">End shift</button>
+      </section>
+
+      <!-- Finish -->
+      <section id="shiftEnd" class="card hidden">
+        <p id="shSummary" style="margin:0 0 6px;font-weight:600"></p>
+        <div class="row">
+          <div>
+            <label for="shCardsEnd">Cards left</label>
+            <input id="shCardsEnd" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+          <div>
+            <label for="shLeafEnd">Leaflets left</label>
+            <input id="shLeafEnd" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+        </div>
+        <label for="shWeather">Weather</label>
+        <select id="shWeather">
+          <option value="">Select...</option>
+          <option>Dry and bright</option><option>Dry and cloudy</option><option>Light rain</option><option>Heavy rain</option><option>Windy</option><option>Cold</option><option>Hot</option>
+        </select>
+        <label for="shNotes">Notes <small>(anything useful: busy streets, common objections, what worked)</small></label>
+        <textarea id="shNotes" placeholder="Optional"></textarea>
+        <div style="height:18px"></div>
+        <button type="button" class="btn" id="shSubmitBtn">Submit shift</button>
+        <button type="button" class="btn secondary gap" id="shBackBtn">Back to tally</button>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var ENDPOINT = 'https://hsusrpcutidavgmagkch.supabase.co/functions/v1/canvass-submit';
+  var MAX_PHOTOS = 8;
+  var photos = []; // {blob, url}
+  var pin = '';
+  var sentToday = 0;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  var today = new Date().toDateString();
+  if (load('sentDay') === today) sentToday = parseInt(load('sentCount') || '0', 10) || 0;
+
+  function showMsg(text, kind) {
+    var m = $('msg');
+    m.textContent = text;
+    m.className = 'msg ' + kind;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function clearMsg() { $('msg').className = 'msg'; }
+  function updateCount() {
+    $('count').textContent = sentToday ? sentToday + (sentToday === 1 ? ' house' : ' houses') + ' logged today' : '';
+  }
+
+  function unlock() {
+    $('pinScreen').classList.add('hidden');
+    $('formScreen').classList.remove('hidden');
+    updateCount();
+  }
+
+  var savedPin = load('canvassPin');
+  if (savedPin) { pin = savedPin; unlock(); }
+
+  $('pinBtn').addEventListener('click', function () {
+    var v = $('pin').value.trim();
+    if (!v) return;
+    pin = v;
+    store('canvassPin', v);
+    unlock();
+  });
+  $('pin').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('pinBtn').click(); });
+
+  // Quick-add chips
+  $('chips').addEventListener('click', function (e) {
+    if (!e.target.classList.contains('chip')) return;
+    var ta = $('notes');
+    var add = e.target.textContent;
+    ta.value = ta.value.trim() ? ta.value.trim().replace(/[.,;]$/, '') + ', ' + add : add;
+  });
+
+  // Photos
+  function resize(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight;
+        var s = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement('canvas');
+        c.width = Math.round(w * s); c.height = Math.round(h * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { resolve(b || file); }, 'image/jpeg', 0.82);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  function renderThumbs() {
+    var box = $('thumbs');
+    box.innerHTML = '';
+    photos.forEach(function (p, i) {
+      var d = document.createElement('div'); d.className = 'thumb';
+      var im = document.createElement('img'); im.src = p.url;
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = '×';
+      b.setAttribute('aria-label', 'Remove photo');
+      b.addEventListener('click', function () { URL.revokeObjectURL(p.url); photos.splice(i, 1); renderThumbs(); });
+      d.appendChild(im); d.appendChild(b); box.appendChild(d);
+    });
+  }
+
+  function addFiles(list) {
+    var files = Array.prototype.slice.call(list || []);
+    var chain = Promise.resolve();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        if (photos.length >= MAX_PHOTOS) return;
+        return resize(f).then(function (blob) {
+          photos.push({ blob: blob, url: URL.createObjectURL(blob) });
+          renderThumbs();
+        });
+      });
+    });
+    return chain;
+  }
+
+  $('takeBtn').addEventListener('click', function () { $('camInput').click(); });
+  $('pickBtn').addEventListener('click', function () { $('galInput').click(); });
+  $('camInput').addEventListener('change', function (e) { addFiles(e.target.files).then(function () { e.target.value = ''; }); });
+  $('galInput').addEventListener('change', function (e) { addFiles(e.target.files).then(function () { e.target.value = ''; }); });
+
+  function resetForm() {
+    ['name', 'phone', 'email', 'address', 'town', 'postcode', 'notes'].forEach(function (id) { $(id).value = ''; });
+    photos.forEach(function (p) { URL.revokeObjectURL(p.url); });
+    photos = [];
+    renderThumbs();
+  }
+
+  $('leadForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearMsg();
+    var name = $('name').value.trim(), address = $('address').value.trim();
+    var phoneVal = $('phone').value.trim(), emailVal = $('email').value.trim();
+    if (!name || !address) { showMsg('Please add the customer name and address.', 'err'); return; }
+    if (!phoneVal && !emailVal) { showMsg('Please add a mobile number or an email so Jake can send the quote.', 'err'); return; }
+    if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { showMsg('That email address does not look right. Please check it.', 'err'); return; }
+
+    var fd = new FormData();
+    fd.append('pin', pin);
+    fd.append('name', name);
+    fd.append('phone', phoneVal);
+    fd.append('email', emailVal);
+    fd.append('address', address);
+    fd.append('town', $('town').value.trim());
+    fd.append('postcode', $('postcode').value.trim());
+    fd.append('notes', $('notes').value.trim());
+    photos.forEach(function (p, i) { fd.append('photos', p.blob, 'photo' + (i + 1) + '.jpg'); });
+
+    var btn = $('submitBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+
+    fetch(ENDPOINT, { method: 'POST', body: fd })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (res) {
+        if (res.status === 401) {
+          drop('canvassPin'); pin = '';
+          $('formScreen').classList.add('hidden');
+          $('pinScreen').classList.remove('hidden');
+          $('pin').value = '';
+          return;
+        }
+        if (res.status >= 200 && res.status < 300 && res.body.ok) {
+          sentToday += 1; store('sentDay', today); store('sentCount', String(sentToday));
+          resetForm(); updateCount();
+          showMsg('Saved. Jake has been emailed. Next house!', 'ok');
+        } else {
+          showMsg((res.body && res.body.error) || 'Something went wrong. Nothing has been lost - try again.', 'err');
+        }
+      })
+      .catch(function () {
+        showMsg('No signal? Your details are still here. Move to better signal and press Save again.', 'err');
+      })
+      .then(function () { btn.disabled = false; btn.textContent = 'Save & send to Jake'; });
+  });
+})();
+</script>
+
+<script>
+(function () {
+  var ENDPOINT = 'https://hsusrpcutidavgmagkch.supabase.co/functions/v1/canvass-session';
+  var $ = function (id) { return document.getElementById(id); };
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  var COUNTERS = [
+    { key: 'doors_knocked', label: 'Doors knocked', wide: true },
+    { key: 'answered', label: 'Someone home' },
+    { key: 'quotes_requested', label: 'Quote requested' },
+    { key: 'not_interested', label: 'Not interested' },
+    { key: 'callbacks', label: 'Call back later' },
+    { key: 'cards_given', label: 'Cards given' },
+    { key: 'leaflets_given', label: 'Leaflets given' }
+  ];
+
+  var st = null; // shift state
+  try { st = JSON.parse(load('shiftState') || 'null'); } catch (e) { st = null; }
+  var timerHandle = null;
+
+  function save() { if (st) store('shiftState', JSON.stringify(st)); else drop('shiftState'); }
+  function msg(text, kind) {
+    var m = $('shiftMsg'); m.textContent = text; m.className = 'msg ' + kind;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function clearMsg() { $('shiftMsg').className = 'msg'; }
+
+  // Tabs
+  function showTab(which) {
+    $('tabLog').classList.toggle('hidden', which !== 'log');
+    $('tabShift').classList.toggle('hidden', which !== 'shift');
+    $('tabBtnLog').classList.toggle('active', which === 'log');
+    $('tabBtnShift').classList.toggle('active', which === 'shift');
+    store('canvassTab', which);
+  }
+  $('tabBtnLog').addEventListener('click', function () { showTab('log'); });
+  $('tabBtnShift').addEventListener('click', function () { showTab('shift'); });
+
+  // Counters UI
+  function buildCounters() {
+    var box = $('shCounters'); box.innerHTML = '';
+    COUNTERS.forEach(function (c) {
+      var d = document.createElement('div'); d.className = 'counter' + (c.wide ? ' wide' : '');
+      d.innerHTML = '<div class="lbl">' + c.label + '</div><div class="val" id="v_' + c.key + '">0</div>' +
+        '<div class="btns"><button type="button" class="minus" data-k="' + c.key + '" data-d="-1" aria-label="Minus one">\u2212</button>' +
+        '<button type="button" class="plus" data-k="' + c.key + '" data-d="1" aria-label="Plus one">+</button></div>';
+      box.appendChild(d);
+    });
+  }
+  buildCounters();
+  $('shCounters').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || !st) return;
+    var k = b.getAttribute('data-k'), d = parseInt(b.getAttribute('data-d'), 10);
+    st.counts[k] = Math.max(0, (st.counts[k] || 0) + d);
+    if (d > 0) {
+      var c = st.counts;
+      var engaged = (c.not_interested || 0) + (c.callbacks || 0) + (c.quotes_requested || 0);
+      if (c.answered < engaged) c.answered = engaged;
+      if (c.doors_knocked < c.answered) c.doors_knocked = c.answered;
+    }
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch (er) {}
+    save(); renderCounts();
+  });
+  function renderCounts() {
+    COUNTERS.forEach(function (c) { var el = $('v_' + c.key); if (el) el.textContent = st ? (st.counts[c.key] || 0) : 0; });
+  }
+
+  // Timer
+  function activeMs() {
+    var now = Date.now();
+    var ms = now - st.startedAt - (st.breakMs || 0);
+    if (st.pausedAt) ms -= (now - st.pausedAt);
+    return Math.max(0, ms);
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    if (!st) return;
+    var s = Math.floor(activeMs() / 1000);
+    $('shTimer').textContent = pad(Math.floor(s / 3600)) + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60);
+    $('shTimerSub').textContent = st.pausedAt ? 'On a break - tap Resume' : 'Started ' + new Date(st.startedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + (st.area ? ' - ' + st.area : '');
+    $('shPauseBtn').textContent = st.pausedAt ? 'Resume' : 'Pause (break)';
+  }
+
+  function show(which) {
+    $('shiftStart').classList.toggle('hidden', which !== 'start');
+    $('shiftRun').classList.toggle('hidden', which !== 'run');
+    $('shiftEnd').classList.toggle('hidden', which !== 'end');
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+    if (which === 'run') { renderCounts(); tick(); timerHandle = setInterval(tick, 1000); }
+  }
+
+  function num(id) { var v = $(id).value.trim(); return v === '' ? null : Math.max(0, parseInt(v, 10) || 0); }
+
+  $('shStartBtn').addEventListener('click', function () {
+    clearMsg();
+    st = {
+      startedAt: Date.now(), breakMs: 0, pausedAt: null,
+      area: $('shArea').value.trim(),
+      cardsStart: num('shCardsStart'), leafletsStart: num('shLeafStart'),
+      counts: { doors_knocked: 0, answered: 0, quotes_requested: 0, not_interested: 0, callbacks: 0, cards_given: 0, leaflets_given: 0 }
+    };
+    save(); show('run');
+  });
+
+  $('shPauseBtn').addEventListener('click', function () {
+    if (!st) return;
+    if (st.pausedAt) { st.breakMs = (st.breakMs || 0) + (Date.now() - st.pausedAt); st.pausedAt = null; }
+    else { st.pausedAt = Date.now(); }
+    save(); tick();
+  });
+
+  $('shEndBtn').addEventListener('click', function () {
+    if (!st) return;
+    var c = st.counts, mins = Math.round(activeMs() / 60000);
+    $('shSummary').textContent = c.doors_knocked + ' doors, ' + c.answered + ' answered, ' + c.quotes_requested + ' quotes requested, ' + (Math.floor(mins / 60)) + 'h ' + (mins % 60) + 'm worked.';
+    if (st.cardsStart !== null && st.cardsStart !== undefined) $('shCardsEnd').placeholder = 'Started with ' + st.cardsStart;
+    if (st.leafletsStart !== null && st.leafletsStart !== undefined) $('shLeafEnd').placeholder = 'Started with ' + st.leafletsStart;
+    show('end');
+  });
+  $('shBackBtn').addEventListener('click', function () { show('run'); });
+
+  $('shSubmitBtn').addEventListener('click', function () {
+    if (!st) return;
+    clearMsg();
+    var btn = $('shSubmitBtn');
+    var endNow = Date.now();
+    var breakMs = (st.breakMs || 0) + (st.pausedAt ? endNow - st.pausedAt : 0);
+    var c = st.counts;
+    var payload = {
+      pin: load('canvassPin') || '',
+      started_at: new Date(st.startedAt).toISOString(),
+      ended_at: new Date(endNow).toISOString(),
+      break_minutes: Math.round(breakMs / 60000),
+      area: st.area || '',
+      doors_knocked: c.doors_knocked, answered: c.answered, not_interested: c.not_interested,
+      callbacks: c.callbacks, quotes_requested: c.quotes_requested,
+      cards_given: c.cards_given, leaflets_given: c.leaflets_given,
+      cards_start: st.cardsStart, cards_end: num('shCardsEnd'),
+      leaflets_start: st.leafletsStart, leaflets_end: num('shLeafEnd'),
+      weather: $('shWeather').value, notes: $('shNotes').value.trim()
+    };
+    btn.disabled = true; btn.textContent = 'Sending...';
+    fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (res) {
+        if (res.status === 401) { drop('canvassPin'); location.reload(); return; }
+        if (res.body && res.body.ok) {
+          st = null; save();
+          ['shArea', 'shCardsStart', 'shLeafStart', 'shCardsEnd', 'shLeafEnd', 'shNotes'].forEach(function (id) { $(id).value = ''; });
+          $('shWeather').value = '';
+          show('start');
+          msg('Shift saved. Nice work!', 'ok');
+        } else {
+          msg((res.body && res.body.error) || 'Could not save. Your numbers are safe - try again.', 'err');
+        }
+      })
+      .catch(function () { msg('No signal? Your numbers are safe on this phone. Try again with better signal.', 'err'); })
+      .then(function () { btn.disabled = false; btn.textContent = 'Submit shift'; });
+  });
+
+  // Initial state
+  show(st ? 'run' : 'start');
+  showTab(load('canvassTab') === 'shift' || st ? 'shift' : 'log');
+})();
+</script>
+</body>
+</html>
