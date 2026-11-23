@@ -85,6 +85,10 @@
   .area p { margin:4px 0 0; font-size:14.5px; line-height:1.4; }
   .area .lbl { font-weight:700; }
   .area .avoid { color:var(--err); }
+  .notes { background:#e9f3fc; border:1.5px solid #bcd9f2; border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+  .notes h2 { margin:0 0 8px; font-size:16px; color:var(--navy); }
+  .notes p { margin:0 0 8px; font-size:15px; line-height:1.4; }
+  .notes p:last-child { margin-bottom:0; }
   .home-intro { margin:0 0 14px; font-size:15px; color:var(--muted); }
   .hidden { display:none !important; }
 </style>
@@ -113,6 +117,12 @@
       <button type="button" class="tab" id="tabBtnShift">Shift tracker</button>
     </div>
     <div id="tabHome">
+      <div class="notes">
+        <h2>Read first</h2>
+        <p>If any of these houses has a clean roof, it was probably us.</p>
+        <p><strong>No cold call sign?</strong> Don't call.</p>
+        <p><strong>Clean cream-coloured or patchy roof?</strong> Offer coloured sealants. They have already paid for most of the prep work.</p>
+      </div>
       <p class="home-intro">Work these in order. Start at number 1.</p>
       <div id="areaList"></div>
       <p class="hint" id="areaMsg"></p>
